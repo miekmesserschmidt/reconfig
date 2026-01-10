@@ -1,9 +1,11 @@
-
 from pathlib import Path
 from typing import Callable
 from reconfig.reconfig import ConfigBuilder, load_toml_dict
 
-def resolve_config(import_path: Path, loader: Callable[[Path], dict] = load_toml_dict ) -> dict:
+
+def resolve_config(
+    import_path: Path, loader: Callable[[Path], dict] = load_toml_dict
+) -> dict:
     """_summary_
 
     Args:
@@ -13,8 +15,7 @@ def resolve_config(import_path: Path, loader: Callable[[Path], dict] = load_toml
     Returns:
         dict: the resolved configuration dictionary.
     """
-    
-    
+
     raw_data = loader(import_path)
     builder = ConfigBuilder(
         import_path_stack=[import_path],
@@ -22,4 +23,3 @@ def resolve_config(import_path: Path, loader: Callable[[Path], dict] = load_toml
         loader=loader,
     )
     return builder.resolve_recursive_imports()
-
