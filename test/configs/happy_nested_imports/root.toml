@@ -1,0 +1,22 @@
+
+
+[section_a]
+    imports = [
+        { import = "includes/include1.toml" },
+        
+    ]
+
+[section_a.section_a_a]
+    imports = [
+        { import = "includes/include1.toml" },
+    ]
+
+[section_a.section_a_a.section_a_a_a]
+    imports = [
+        { import = "includes/include1.toml" },
+    ]
+
+[section_b]
+    imports = [
+        { import = "includes/include1.toml" },
+    ]

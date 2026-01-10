@@ -149,6 +149,83 @@ class TestConfigBuilderImportConflicts:
             builder.resolve_recursive_imports()
 
 
+class TestConfigBuilderHappyNestedImports:
+    """Test happy path with deeply nested imports."""
+    
+    def test_nested_sections_with_same_import(self):
+        """Test that the same file can be imported in multiple nested sections."""
+        config_path = Path("test/configs/happy_nested_imports/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        result = builder.resolve_recursive_imports()
+        
+        # Check that section_a has include1 imported
+        assert "section_a" in result
+        section_a = result["section_a"]
+        assert section_a["include1"]["value1"] == "value_from_include1"
+        
+        
+        # Check that section_a_a has include1 imported
+        assert "section_a_a" in section_a
+        section_a_a = section_a["section_a_a"]
+        assert "include1" in section_a_a
+        assert section_a["include1"]["value1"] == "value_from_include1"
+        
+        # Check that section_b has include1 imported
+        assert "section_b" in result
+        assert "include1" in result["section_b"]
+        assert result["section_b"]["include1"]["value1"] == "value_from_include1"
+    
+    def test_deeply_nested_sections_with_imports(self):
+        """Test that imports work in deeply nested section structures."""
+        config_path = Path("test/configs/happy_nested_imports/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        result = builder.resolve_recursive_imports()
+        
+        # Check that all nested sections from TOML are flattened to top level
+        assert "section_a_a" in result["section_a"]
+        assert "section_a_a_a" in result["section_a"]["section_a_a"]
+        assert "include1" in result["section_a"]["section_a_a"]["section_a_a_a"]
+        assert result["section_a"]["section_a_a"]["section_a_a_a"]["include1"]["value1"] == "value_from_include1"
+    
+    def test_no_import_conflicts_with_isolated_scopes(self):
+        """Test that importing the same file in different sections doesn't cause conflicts."""
+        config_path = Path("test/configs/happy_nested_imports/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        # Should not raise any errors
+        result = builder.resolve_recursive_imports()
+        
+        # Verify all sections have their own isolated import of include1
+        sections_with_include1 = [
+            result["section_a"]["include1"],
+            result["section_a"]["section_a_a"]["include1"],
+            result["section_a"]["section_a_a"]["section_a_a_a"]["include1"],
+            result["section_b"]["include1"]
+        ]
+        
+        # All should have the same content but be independently imported
+        for section in sections_with_include1:
+            assert section["value1"] == "value_from_include1"
+            assert section["nested_val"] == "nested_value"
+
+
 class TestConfigBuilderMethods:
     """Test individual ConfigBuilder methods."""
     
