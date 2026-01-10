@@ -26,22 +26,20 @@ def load_toml_dict(path: Path) -> dict:
 @dataclass
 class ConfigBuilder:
     import_path_stack: List[Path]
-    raw_toml_dict: dict[str,str]
+    raw_toml_dict: dict[str, str]
     delete_imports: bool = True
-    
-    loader : Callable[[Path], dict] = field(default_factory=lambda: load_toml_dict)
 
-    
-    
+    loader: Callable[[Path], dict] = field(default_factory=lambda: load_toml_dict)
+
     @property
     def resolved_path(self) -> Path:
-        return self.import_path_stack[-1].resolve() 
+        return self.import_path_stack[-1].resolve()
 
     def imports(self) -> List[BaseImport]:
         reconfig = self.raw_toml_dict.get("imports", [])
         reconfig = cast(Iterable[dict], reconfig)
         return [detect_import(import_dict) for import_dict in reconfig]
-    
+
     def child_environments(self) -> dict:
         return {
             name: d for name, d in self.raw_toml_dict.items() if isinstance(d, dict)
@@ -54,7 +52,7 @@ class ConfigBuilder:
         return imps
 
     def resolve_recursive_imports(self) -> dict[str, Any]:
-        result_config : dict[str, Any] = self.raw_toml_dict.copy()
+        result_config: dict[str, Any] = self.raw_toml_dict.copy()
         if "imports" in result_config:
             del result_config["imports"]
 
@@ -113,7 +111,7 @@ class ConfigBuilder:
                                 f"Import conflict: {import_name} already exists in the configuration."
                             )
                         result_config[import_name] = resolved[import_name]
-                        
+
                 case FromImportStar(path=path):
                     for import_name, value in resolved.items():
                         if import_name in result_config:
@@ -122,7 +120,9 @@ class ConfigBuilder:
                             )
                         result_config[import_name] = value
 
-                case FromImportOneAs(path=path, import_name=import_name, as_name=as_name):
+                case FromImportOneAs(
+                    path=path, import_name=import_name, as_name=as_name
+                ):
                     if import_name not in resolved:
                         raise ValueError(
                             f"Import name {import_name} not found in {path}."
@@ -147,5 +147,5 @@ class ConfigBuilder:
             )
             resolved_d = b.resolve_recursive_imports()
             result_config[name] = resolved_d
-            
+
         return result_config
