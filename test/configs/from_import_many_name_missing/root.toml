@@ -1,0 +1,6 @@
+
+imports = [
+    { from = "includes/sections.toml", import = ["section_a", "section_c"] },
+]
+
+value = "root"

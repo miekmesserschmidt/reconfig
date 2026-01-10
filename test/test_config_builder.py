@@ -149,6 +149,49 @@ class TestConfigBuilderImportConflicts:
             builder.resolve_recursive_imports()
 
 
+class TestConfigBuilderImportNameMissing:
+    """Test scenarios where imported section names don't exist in the target file."""
+    
+    def test_from_import_one_name_missing(self):
+        """Test that importing a non-existent section raises ValueError."""
+        config_path = Path("test/configs/from_import_one_name_missing/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        with pytest.raises(ValueError, match="Import name.*not found"):
+            builder.resolve_recursive_imports()
+    
+    def test_from_import_many_name_missing(self):
+        """Test that importing with one or more non-existent sections raises ValueError."""
+        config_path = Path("test/configs/from_import_many_name_missing/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        with pytest.raises(ValueError, match="Import name.*not found"):
+            builder.resolve_recursive_imports()
+    
+    def test_from_import_as_name_missing(self):
+        """Test that importing a non-existent section with alias raises ValueError."""
+        config_path = Path("test/configs/from_import_as_name_missing/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        with pytest.raises(ValueError, match="Import name.*not found"):
+            builder.resolve_recursive_imports()
+
+
 class TestConfigBuilderHappyNestedImports:
     """Test happy path with deeply nested imports."""
     
@@ -224,6 +267,23 @@ class TestConfigBuilderHappyNestedImports:
         for section in sections_with_include1:
             assert section["value1"] == "value_from_include1"
             assert section["nested_val"] == "nested_value"
+
+
+class TestConfigBuilderInvalidImport:
+    """Test scenarios with invalid import syntax."""
+    
+    def test_invalid_import_definition(self):
+        """Test that invalid import definitions raise ValueError."""
+        config_path = Path("test/configs/imports_invalid_import/root.toml")
+        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[config_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        with pytest.raises(ValueError, match="Invalid import definition"):
+            builder.resolve_recursive_imports()
 
 
 class TestConfigBuilderMethods:

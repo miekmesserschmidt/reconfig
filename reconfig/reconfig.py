@@ -13,17 +13,6 @@ from reconfig.import_types import (
 )
 
 
-@dataclass
-class ReconfigDefinition:
-    raw_toml_dict = dict
-
-    @property
-    def imports(self) -> Iterable[BaseImport]:
-        reconfig = self.raw_toml_dict.get("imports", [])
-
-        for import_dict in reconfig:
-            yield detect_import(import_dict)
-
 
 @dataclass
 class ConfigBuilder:
