@@ -353,3 +353,39 @@ class TestConfigBuilderMethods:
         
         result = builder.resolve_recursive_imports()
         assert "imports" not in result
+
+
+class TestConfigBuilderHappyAbsolutePath:
+    
+    def test_absolute_path_import(self, tmp_path):
+        """Test that absolute path imports are resolved correctly."""
+        # Create a temporary include file
+        include_path = (tmp_path / "inc.toml").resolve()
+        include_path.write_text("""
+        [section]
+        value = "absolute_value"
+        """)
+        
+        # Create a root TOML file that imports the absolute path
+        include_path = include_path.as_posix()
+        assert include_path.startswith("/")
+        
+        root_path = tmp_path / "root.toml"
+        root_path.write_text(f"""
+        imports = [
+            {{ import = "{include_path}" }}
+        ]
+        """)
+        
+        toml_dict = ConfigBuilder.load_toml_dict(root_path)
+        
+        builder = ConfigBuilder(
+            import_path_stack=[root_path],
+            raw_toml_dict=toml_dict,
+        )
+        
+        result = builder.resolve_recursive_imports()
+        
+        # Check that the absolute include was imported correctly
+        assert "inc" in result
+        assert result["inc"]["section"]["value"] == "absolute_value"
