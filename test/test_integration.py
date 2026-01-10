@@ -29,6 +29,17 @@ section_d_var_d = "section_d_value_d"
 var_section_e = "not present"
 ''')
     
+    # Create ./includes_B/include_e.toml
+    include_e = includes_b / "include_e.toml"
+    include_e.write_text('''[db]
+host = "localhost"
+port = 5432
+
+[cache]
+host = "redis.local"
+ttl = 3600
+''')
+    
     # Create ./includes_A/include_a.toml
     include_a = includes_a / "include_a.toml"
     etc_path = etc_conf.resolve().as_posix()
@@ -66,7 +77,8 @@ var_d = "value_d"
 imports = [
     {from = "./includes_A/include_b.toml", import = "var_b"},
     {from = "./includes_A/include_c.toml", import = "var_c", as="new_var_c"},
-    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]}
+    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]},
+    {from = "./includes_B/include_e.toml", import = "*"}
 ]
 ''')
     
@@ -96,6 +108,14 @@ imports = [
             "var_d": "value_d_yes",
             "section_d": {
                 "section_d_var_d": "section_d_value_d"
+            },
+            "db": {
+                "host": "localhost",
+                "port": 5432
+            },
+            "cache": {
+                "host": "redis.local",
+                "ttl": 3600
             }
         }
     }

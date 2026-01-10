@@ -21,7 +21,10 @@ imports = {
     { from = "{filepath}", import = "{name}"},
     
     # import a single of variables from file (provided newname becomes the key)
-    { from = "{filepath}", import = "{name}", as = "{newname}"} 
+    { from = "{filepath}", import = "{name}", as = "{newname}"},
+    
+    # import all top-level sections from file (star import)
+    { from = "{filepath}", import = "*" }
 }
 
 ```
@@ -35,16 +38,17 @@ Example:
 # ./root.toml
 ####
 #top imports
-imports = {
+imports = [
     {import = "./includes_A/include_a.toml"},
-}
+]
 
 [section]
-imports = {
+imports = [
     {from = "./includes_A/include_b.toml", import = "var_b"},
-    {from = "./includes_A/include_c.toml", import = "var_c", as="new_var_c"}
-    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]}
-}
+    {from = "./includes_A/include_c.toml", import = "var_c", as="new_var_c"},
+    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]},
+    {from = "./includes_B/include_e.toml", import = "*"}
+]
 
 ####
 # ./includes_A/include_a.toml
@@ -82,6 +86,17 @@ section_d_var_d = "section_d_value_d"
 var_section_e = "not present"
 
 ####
+# ./includes_B/include_e.toml
+####
+[db]
+host = "localhost"
+port = 5432
+
+[cache]
+host = "redis.local"
+ttl = 3600
+
+####
 # /etc/reconf/etc_conf.toml
 ####
 etc_var = "etc"
@@ -113,9 +128,17 @@ assert result == {
     "section": {
         "var_b": "value_b",
         "new_var_c": "value_c",
-        "var_d": "value_d",
+        "var_d": "value_d_yes",
         "section_d": {
             "section_d_var_d": "section_d_value_d"
+        },
+        "db": {
+            "host": "localhost",
+            "port": 5432
+        },
+        "cache": {
+            "host": "redis.local",
+            "ttl": 3600
         }
     }
 }
