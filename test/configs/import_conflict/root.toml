@@ -1,0 +1,7 @@
+
+reconfig = [
+    { import = "includes/conflict.toml" },
+    { import = "includes/conflict.toml" },
+]
+
+value = "root"

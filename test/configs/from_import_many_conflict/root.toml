@@ -1,0 +1,7 @@
+
+reconfig = [
+    { from = "includes/sections.toml", import = ["section_a", "section_b"] },
+    { from = "includes/sections.toml", import = ["section_a"] },
+]
+
+value = "root"

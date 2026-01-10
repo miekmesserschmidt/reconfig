@@ -1,0 +1,9 @@
+{
+    "python.analysis.indexing": true,
+    "python.analysis.autoImportCompletions": true,
+    "python.testing.pytestArgs": [
+        "test"
+    ],
+    "python.testing.unittestEnabled": false,
+    "python.testing.pytestEnabled": true
+}

@@ -1,0 +1,147 @@
+from dataclasses import dataclass
+from pathlib import Path
+from typing import Iterable, List
+
+from reconfig.import_types import (
+    FromImportMany,
+    detect_import,
+    BaseImport,
+    Import,
+    ImportAs,
+    FromImportOne,
+    FromImportAs,
+)
+
+
+@dataclass
+class ReconfigDefinition:
+    raw_toml_dict = dict
+
+    @property
+    def imports(self) -> Iterable[BaseImport]:
+        reconfig = self.raw_toml_dict.get("reconfig", [])
+
+        for import_dict in reconfig:
+            yield detect_import(import_dict)
+
+
+@dataclass
+class ConfigBuilder:
+    import_path_stack: List[Path]
+    raw_toml_dict: dict
+    delete_imports: bool = True
+
+    @staticmethod
+    def load_toml_dict(path: Path) -> dict:
+        import tomllib
+
+        with open(path, "rb") as f:
+            toml_dict = tomllib.load(f)
+
+        return toml_dict
+
+    @property
+    def resolved_path(self) -> Path:
+        return self.import_path_stack[-1] if self.import_path_stack else None
+
+    def imports(self) -> List[BaseImport]:
+        reconfig = self.raw_toml_dict.get("reconfig", [])
+        return [detect_import(import_dict) for import_dict in reconfig]
+    
+    def child_environments(self) -> dict:
+        return {
+            name: d for name, d in self.raw_toml_dict.items() if isinstance(d, dict)
+        }
+
+    @property
+    def reconfig_list(self) -> list:
+        return self.raw_toml_dict.get("reconfig", [])
+
+    def resolve_recursive_imports(self) -> dict:
+        result_config = self.raw_toml_dict.copy()
+        if "reconfig" in result_config:
+            del result_config["reconfig"]
+
+        # resolve the imports at the top level
+        for imp in self.imports():
+            import_path = imp.resolve_path(self.resolved_path)
+            if import_path in self.import_path_stack:
+                raise ValueError(
+                    f"Circular import detected: {import_path} is already in the import stack: {self.import_path_stack}"
+                )
+
+            import_dict = ConfigBuilder.load_toml_dict(import_path)
+
+            builder = ConfigBuilder(
+                import_path_stack=self.import_path_stack + [import_path],
+                raw_toml_dict=import_dict,
+                delete_imports=self.delete_imports,
+            )
+            resolved = builder.resolve_recursive_imports()
+
+            match imp:
+                case Import(path=path):
+                    fn = path.stem
+                    if fn in result_config:
+                        raise ValueError(
+                            f"Import conflict: {fn} already exists in the configuration."
+                        )
+                    result_config[fn] = resolved
+
+                case ImportAs(path=path, as_name=as_name):
+                    if as_name in result_config:
+                        raise ValueError(
+                            f"Import conflict: {as_name} already exists in the configuration."
+                        )
+                    result_config[as_name] = resolved
+
+                case FromImportOne(path=path, import_name=import_name):
+                    if import_name in result_config:
+                        raise ValueError(
+                            f"Import conflict: {import_name} already exists in the configuration."
+                        )
+                    if import_name not in resolved:
+                        raise ValueError(
+                            f"Import name {import_name} not found in {path}."
+                        )
+                    result_config[import_name] = resolved[import_name]
+
+                case FromImportMany(path=path, import_names=import_names):
+                    for import_name in import_names:
+                        if import_name not in resolved:
+                            raise ValueError(
+                                f"Import name {import_name} not found in {path}."
+                            )
+                        if import_name in result_config:
+                            raise ValueError(
+                                f"Import conflict: {import_name} already exists in the configuration."
+                            )
+                        result_config[import_name] = resolved[import_name]
+
+                case FromImportAs(path=path, import_name=import_name, as_name=as_name):
+                    if import_name not in resolved:
+                        raise ValueError(
+                            f"Import name {import_name} not found in {path}."
+                        )
+                    if as_name in result_config:
+                        raise ValueError(
+                            f"Import conflict: {as_name} already exists in the configuration."
+                        )
+                    result_config[as_name] = resolved[import_name]
+
+                case _:
+                    raise NotImplementedError(
+                        f"Import type {type(imp)} not implemented yet."
+                    )
+
+        # resolve the child environments
+        for name, d in self.child_environments().items():
+            b = ConfigBuilder(
+                import_path_stack=self.import_path_stack,
+                raw_toml_dict=d,
+                delete_imports=self.delete_imports,
+            )
+            resolved_d = b.resolve_recursive_imports()
+            result_config[name] = resolved_d
+            
+        return result_config

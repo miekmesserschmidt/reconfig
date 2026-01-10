@@ -1,0 +1,16 @@
+
+
+
+reconfig = [
+    { import = "includes/include1.toml" },
+    { import = "includes/include2.toml", as = "custom_name_include2" },
+    { from = "includes/include3.toml", import = [ "section_b"] },
+]
+
+[section_a]
+    reconfig = [
+        { import = "includes/include1.toml" },
+        { import = "includes/include2.toml", as = "custom_name_include2" },
+        { from = "includes/include3.toml", import = ["section_a", "section_b"] },
+        { from = "includes/include3.toml", import = "section_a", as = "renamed_section_a" },
+    ]
