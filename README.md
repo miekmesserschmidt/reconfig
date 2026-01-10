@@ -23,7 +23,7 @@ imports = {
     # import a single of variables from file (provided newname becomes the key)
     { from = "{filepath}", import = "{name}", as = "{newname}"},
     
-    # import all top-level sections from file (star import)
+    # import all top-level elements from file (star import)
     { from = "{filepath}", import = "*" }
 }
 
