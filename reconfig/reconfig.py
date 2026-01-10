@@ -1,6 +1,6 @@
-from dataclasses import dataclass
+from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Iterable, List
+from typing import Any, Callable, Iterable, List, cast
 
 from reconfig.import_types import (
     FromImportMany,
@@ -13,28 +13,32 @@ from reconfig.import_types import (
 )
 
 
+def load_toml_dict(path: Path) -> dict:
+    import tomllib
+
+    with open(path, "rb") as f:
+        toml_dict = tomllib.load(f)
+
+    return toml_dict
+
 
 @dataclass
 class ConfigBuilder:
     import_path_stack: List[Path]
-    raw_toml_dict: dict
+    raw_toml_dict: dict[str,str]
     delete_imports: bool = True
+    
+    loader : Callable[[Path], dict] = field(default_factory=lambda: load_toml_dict)
 
-    @staticmethod
-    def load_toml_dict(path: Path) -> dict:
-        import tomllib
-
-        with open(path, "rb") as f:
-            toml_dict = tomllib.load(f)
-
-        return toml_dict
-
+    
+    
     @property
     def resolved_path(self) -> Path:
-        return self.import_path_stack[-1] if self.import_path_stack else None
+        return self.import_path_stack[-1].resolve() 
 
     def imports(self) -> List[BaseImport]:
         reconfig = self.raw_toml_dict.get("imports", [])
+        reconfig = cast(Iterable[dict], reconfig)
         return [detect_import(import_dict) for import_dict in reconfig]
     
     def child_environments(self) -> dict:
@@ -43,11 +47,13 @@ class ConfigBuilder:
         }
 
     @property
-    def reconfig_list(self) -> list:
-        return self.raw_toml_dict.get("imports", [])
+    def reconfig_list(self) -> list[dict[str, dict]]:
+        imps = self.raw_toml_dict.get("imports", [])
+        imps = cast(list[dict[str, dict]], imps)
+        return imps
 
-    def resolve_recursive_imports(self) -> dict:
-        result_config = self.raw_toml_dict.copy()
+    def resolve_recursive_imports(self) -> dict[str, Any]:
+        result_config : dict[str, Any] = self.raw_toml_dict.copy()
         if "imports" in result_config:
             del result_config["imports"]
 
@@ -59,7 +65,7 @@ class ConfigBuilder:
                     f"Circular import detected: {import_path} is already in the import stack: {self.import_path_stack}"
                 )
 
-            import_dict = ConfigBuilder.load_toml_dict(import_path)
+            import_dict = self.loader(import_path)
 
             builder = ConfigBuilder(
                 import_path_stack=self.import_path_stack + [import_path],

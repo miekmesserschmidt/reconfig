@@ -1,7 +1,7 @@
 [project]
 name = "reconfig"
 version = "0.1.0"
-description = "Add your description here"
+description = "Reconfig is a configuration management tool for TOML. It includes an import mechanism so that configurations gan be across multiple files."
 readme = "README.md"
 requires-python = ">=3.13"
 dependencies = []
