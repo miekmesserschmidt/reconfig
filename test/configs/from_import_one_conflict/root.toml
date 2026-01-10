@@ -1,5 +1,5 @@
 
-reconfig = [
+imports = [
     { from = "includes/sections.toml", import = "section_a" },
     { from = "includes/sections.toml", import = "section_a" },
 ]

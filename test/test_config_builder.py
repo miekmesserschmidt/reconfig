@@ -61,7 +61,7 @@ class TestConfigBuilderHappy:
         # Verify values in nested imports
         assert section_a["section_a"]["val_a1"] == "value_a1"
         assert section_a["renamed_section_a"]["val_a1"] == "value_a1"
-
+        assert section_a["section_a_val"] == "root_section_a_value"
 
 class TestConfigBuilderCircularImport:
     """Test circular import detection."""
@@ -158,8 +158,8 @@ class TestConfigBuilderMethods:
         result = ConfigBuilder.load_toml_dict(config_path)
         
         assert isinstance(result, dict)
-        assert "reconfig" in result
-        assert isinstance(result["reconfig"], list)
+        assert "imports" in result
+        assert isinstance(result["imports"], list)
     
     def test_imports_method(self):
         """Test extracting imports from raw TOML dict."""
@@ -191,7 +191,7 @@ class TestConfigBuilderMethods:
         assert isinstance(children["section_a"], dict)
     
     def test_reconfig_list_property(self):
-        """Test reconfig_list property returns the reconfig array."""
+        """Test reconfig_list property returns the imports array."""
         config_path = Path("test/configs/happy/root.toml").resolve()
         toml_dict = ConfigBuilder.load_toml_dict(config_path)
         
@@ -205,7 +205,7 @@ class TestConfigBuilderMethods:
         assert len(reconfig_list) > 0
     
     def test_reconfig_removed_from_result(self):
-        """Test that reconfig key is removed from resolved config."""
+        """Test that imports key is removed from resolved config."""
         config_path = Path("test/configs/happy/root.toml")
         toml_dict = ConfigBuilder.load_toml_dict(config_path)
         
@@ -215,4 +215,4 @@ class TestConfigBuilderMethods:
         )
         
         result = builder.resolve_recursive_imports()
-        assert "reconfig" not in result
+        assert "imports" not in result
