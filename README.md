@@ -6,6 +6,9 @@ It handles relative and absolute imports.
 It detects and throws on circular imports.
 
 
+Syntax
+=====
+
 ```TOML
 imports = { 
     # simple import  (filename becomes the key)
