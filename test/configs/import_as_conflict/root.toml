@@ -1,5 +1,5 @@
 
-reconfig = [
+imports = [
     { import = "includes/file1.toml", as = "same_name" },
     { import = "includes/file2.toml", as = "same_name" },
 ]

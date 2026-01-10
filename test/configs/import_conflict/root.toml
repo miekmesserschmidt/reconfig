@@ -1,5 +1,5 @@
 
-reconfig = [
+imports = [
     { import = "includes/conflict.toml" },
     { import = "includes/conflict.toml" },
 ]

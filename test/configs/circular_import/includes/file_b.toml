@@ -1,5 +1,5 @@
 
-reconfig = [
+imports = [
     { import = "file_a.toml" },
 ]
 

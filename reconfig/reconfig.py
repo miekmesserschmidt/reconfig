@@ -19,7 +19,7 @@ class ReconfigDefinition:
 
     @property
     def imports(self) -> Iterable[BaseImport]:
-        reconfig = self.raw_toml_dict.get("reconfig", [])
+        reconfig = self.raw_toml_dict.get("imports", [])
 
         for import_dict in reconfig:
             yield detect_import(import_dict)
@@ -45,7 +45,7 @@ class ConfigBuilder:
         return self.import_path_stack[-1] if self.import_path_stack else None
 
     def imports(self) -> List[BaseImport]:
-        reconfig = self.raw_toml_dict.get("reconfig", [])
+        reconfig = self.raw_toml_dict.get("imports", [])
         return [detect_import(import_dict) for import_dict in reconfig]
     
     def child_environments(self) -> dict:
@@ -55,12 +55,12 @@ class ConfigBuilder:
 
     @property
     def reconfig_list(self) -> list:
-        return self.raw_toml_dict.get("reconfig", [])
+        return self.raw_toml_dict.get("imports", [])
 
     def resolve_recursive_imports(self) -> dict:
         result_config = self.raw_toml_dict.copy()
-        if "reconfig" in result_config:
-            del result_config["reconfig"]
+        if "imports" in result_config:
+            del result_config["imports"]
 
         # resolve the imports at the top level
         for imp in self.imports():
