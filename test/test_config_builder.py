@@ -1,6 +1,6 @@
 import pytest
 from pathlib import Path
-from reconfig.reconfig import ConfigBuilder
+from reconfig.reconfig import ConfigBuilder, load_toml_dict
 
 
 class TestConfigBuilderHappy:
@@ -9,7 +9,7 @@ class TestConfigBuilderHappy:
     def test_basic_import(self):
         """Test basic import without alias."""
         config_path = Path("test/configs/happy/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -39,7 +39,7 @@ class TestConfigBuilderHappy:
     def test_nested_section_imports(self):
         """Test imports within nested sections."""
         config_path = Path("test/configs/happy/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -69,7 +69,7 @@ class TestConfigBuilderCircularImport:
     def test_circular_import_detected(self):
         """Test that circular imports raise ValueError."""
         config_path = Path("test/configs/circular_import/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -86,7 +86,7 @@ class TestConfigBuilderImportConflicts:
     def test_import_conflict(self):
         """Test that importing the same file twice raises ValueError."""
         config_path = Path("test/configs/import_conflict/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -99,7 +99,7 @@ class TestConfigBuilderImportConflicts:
     def test_import_as_conflict(self):
         """Test that importing with duplicate alias names raises ValueError."""
         config_path = Path("test/configs/import_as_conflict/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -112,7 +112,7 @@ class TestConfigBuilderImportConflicts:
     def test_from_import_one_conflict(self):
         """Test that importing the same section twice raises ValueError."""
         config_path = Path("test/configs/from_import_one_conflict/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -125,7 +125,7 @@ class TestConfigBuilderImportConflicts:
     def test_from_import_many_conflict(self):
         """Test that importing overlapping sections raises ValueError."""
         config_path = Path("test/configs/from_import_many_conflict/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -138,7 +138,7 @@ class TestConfigBuilderImportConflicts:
     def test_from_import_as_conflict(self):
         """Test that importing sections with duplicate alias names raises ValueError."""
         config_path = Path("test/configs/from_import_as_conflict/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -155,7 +155,7 @@ class TestConfigBuilderImportNameMissing:
     def test_from_import_one_name_missing(self):
         """Test that importing a non-existent section raises ValueError."""
         config_path = Path("test/configs/from_import_one_name_missing/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -168,7 +168,7 @@ class TestConfigBuilderImportNameMissing:
     def test_from_import_many_name_missing(self):
         """Test that importing with one or more non-existent sections raises ValueError."""
         config_path = Path("test/configs/from_import_many_name_missing/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -181,7 +181,7 @@ class TestConfigBuilderImportNameMissing:
     def test_from_import_as_name_missing(self):
         """Test that importing a non-existent section with alias raises ValueError."""
         config_path = Path("test/configs/from_import_as_name_missing/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -198,7 +198,7 @@ class TestConfigBuilderHappyNestedImports:
     def test_nested_sections_with_same_import(self):
         """Test that the same file can be imported in multiple nested sections."""
         config_path = Path("test/configs/happy_nested_imports/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -227,7 +227,7 @@ class TestConfigBuilderHappyNestedImports:
     def test_deeply_nested_sections_with_imports(self):
         """Test that imports work in deeply nested section structures."""
         config_path = Path("test/configs/happy_nested_imports/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -245,7 +245,7 @@ class TestConfigBuilderHappyNestedImports:
     def test_no_import_conflicts_with_isolated_scopes(self):
         """Test that importing the same file in different sections doesn't cause conflicts."""
         config_path = Path("test/configs/happy_nested_imports/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -275,7 +275,7 @@ class TestConfigBuilderInvalidImport:
     def test_invalid_import_definition(self):
         """Test that invalid import definitions raise ValueError."""
         config_path = Path("test/configs/imports_invalid_import/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -292,7 +292,7 @@ class TestConfigBuilderMethods:
     def test_load_toml_dict(self):
         """Test loading TOML file into dictionary."""
         config_path = Path("test/configs/happy/root.toml")
-        result = ConfigBuilder.load_toml_dict(config_path)
+        result = load_toml_dict(config_path)
         
         assert isinstance(result, dict)
         assert "imports" in result
@@ -301,7 +301,7 @@ class TestConfigBuilderMethods:
     def test_imports_method(self):
         """Test extracting imports from raw TOML dict."""
         config_path = Path("test/configs/happy/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -315,7 +315,7 @@ class TestConfigBuilderMethods:
     def test_child_environments(self):
         """Test extracting child environment sections."""
         config_path = Path("test/configs/happy/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -330,7 +330,7 @@ class TestConfigBuilderMethods:
     def test_reconfig_list_property(self):
         """Test reconfig_list property returns the imports array."""
         config_path = Path("test/configs/happy/root.toml").resolve()
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -344,7 +344,7 @@ class TestConfigBuilderMethods:
     def test_reconfig_removed_from_result(self):
         """Test that imports key is removed from resolved config."""
         config_path = Path("test/configs/happy/root.toml")
-        toml_dict = ConfigBuilder.load_toml_dict(config_path)
+        toml_dict = load_toml_dict(config_path)
         
         builder = ConfigBuilder(
             import_path_stack=[config_path],
@@ -377,7 +377,7 @@ class TestConfigBuilderHappyAbsolutePath:
         ]
         """)
         
-        toml_dict = ConfigBuilder.load_toml_dict(root_path)
+        toml_dict = load_toml_dict(root_path)
         
         builder = ConfigBuilder(
             import_path_stack=[root_path],
