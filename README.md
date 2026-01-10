@@ -12,7 +12,7 @@ Syntax
 ```TOML
 imports = { 
     # simple import  (filename becomes the key)
-    { import = "{ ... filepath} ..." },      
+    { import = "{filepath}" },      
     
     # renaming simple import (provided newname becomes the key)
     { import = "{filepath}", as = "{newname}"},
