@@ -39,11 +39,11 @@ imports = {
     {import = "./includes_A/include_a.toml"},
 }
 
-[section_a]
+[section]
 imports = {
     {from = "./includes_A/include_b.toml", import = "var_b"},
     {from = "./includes_A/include_c.toml", import = "var_c", as="new_var_c"}
-    {from = "./includes_A/include_d.toml", import = ["var_d", "section_d"]}
+    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]}
 }
 
 ####
@@ -89,6 +89,35 @@ etc_var = "etc"
 
 ```python
 
-import ...
+from reconfig import resolve_config
+from pathlib import Path
+
+result = resolve_config(Path("./root.toml"))
+
+assert result == {
+    "include_a": {
+        "include_d": {
+            "var_d": "value_d_yes",
+            "section_d": {
+                "section_d_var_d": "section_d_value_d"
+            },
+            "section_e": {
+                "var_section_e": "not present"
+            }
+        },
+        "etc_conf": {
+            "etc_var": "etc"
+        },
+        "var_a": "value_a"
+    },
+    "section": {
+        "var_b": "value_b",
+        "new_var_c": "value_c",
+        "var_d": "value_d",
+        "section_d": {
+            "section_d_var_d": "section_d_value_d"
+        }
+    }
+}
 
 ```
