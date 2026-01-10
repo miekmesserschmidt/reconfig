@@ -1,0 +1,13 @@
+[section_a]
+value_a = "section_a_value"
+
+[section_a.subsection]
+imports = [
+    { from = "includes/base.toml", import = "*" }
+]
+nested_local = "nested_data"
+
+[section_b]
+imports = [
+    { from = "includes/base.toml", import = "*" }
+]

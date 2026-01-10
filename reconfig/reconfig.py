@@ -9,7 +9,8 @@ from reconfig.import_types import (
     Import,
     ImportAs,
     FromImportOne,
-    FromImportAs,
+    FromImportStar,
+    FromImportOneAs,
 )
 
 
@@ -112,8 +113,16 @@ class ConfigBuilder:
                                 f"Import conflict: {import_name} already exists in the configuration."
                             )
                         result_config[import_name] = resolved[import_name]
+                        
+                case FromImportStar(path=path):
+                    for import_name, value in resolved.items():
+                        if import_name in result_config:
+                            raise ValueError(
+                                f"Import conflict: {import_name} already exists in the configuration."
+                            )
+                        result_config[import_name] = value
 
-                case FromImportAs(path=path, import_name=import_name, as_name=as_name):
+                case FromImportOneAs(path=path, import_name=import_name, as_name=as_name):
                     if import_name not in resolved:
                         raise ValueError(
                             f"Import name {import_name} not found in {path}."

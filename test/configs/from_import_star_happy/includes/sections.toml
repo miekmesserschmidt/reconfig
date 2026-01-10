@@ -1,0 +1,10 @@
+[section_a]
+value_a = "from_section_a"
+nested_a = "nested_value_a"
+
+[section_b]
+value_b = "from_section_b"
+nested_b = "nested_value_b"
+
+[section_c]
+value_c = "from_section_c"
