@@ -1,0 +1,13 @@
+
+
+[section_a]
+    val_a1 = "value_a1"
+    val_a2 = "value_a2"
+
+[section_b]
+    val_b1 = "value_b1"
+    val_b2 = "value_b2"
+
+[section_c]
+    val_c1 = "value_c1"
+    val_c2 = "value_c2"

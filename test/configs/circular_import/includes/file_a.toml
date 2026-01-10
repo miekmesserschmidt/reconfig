@@ -1,0 +1,6 @@
+
+reconfig = [
+    { import = "file_b.toml" },
+]
+
+val_a = "value_a"
