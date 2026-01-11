@@ -1,6 +1,6 @@
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, cast
+from typing import Any, Callable, Iterable, List, Optional, cast
 
 from reconfig.import_types import (
     FromImportMany,
@@ -23,10 +23,38 @@ def load_toml_dict(path: Path) -> dict:
     return toml_dict
 
 
+
+
+def resolve_path(path:Path, base_path: Optional[Path] = None) -> Path:
+    if base_path is None:
+        return path.resolve()
+
+    if path.is_absolute():
+        return path.resolve()
+
+    return (base_path.parent / path).resolve()
+
+def resolve_inside_address(obj: dict[str, Any], inside_address: list[str]) -> Any:
+    if not inside_address:
+        return obj
+    
+    if not isinstance(obj, dict):
+        raise ValueError(f"Cannot resolve inside address {inside_address} on non-dict object: {obj}")
+    
+    key, *rest = inside_address
+    if key not in obj:
+        raise KeyError(f"Key {key} not found in object while resolving inside address {inside_address}: {obj}")
+    
+    return resolve_inside_address(obj[key], rest)
+
+
+
+
 @dataclass
 class ConfigBuilder:
-    import_path_stack: List[Path]
-    raw_toml_dict: dict[str, str]
+    base_path : Optional[Path] = None
+    import_path_stack: List[Path] = field(default_factory=list)
+    raw_toml_dict: dict[str, str] = field(default_factory=dict)
     delete_imports: bool = True
 
     loader: Callable[[Path], dict] = field(default_factory=lambda: load_toml_dict)
@@ -58,7 +86,7 @@ class ConfigBuilder:
 
         # resolve the imports at the top level
         for imp in self.imports():
-            import_path = imp.resolve_path(self.resolved_path)
+            import_path = resolve_path(self.resolved_path, base_path=self.base_path)
             if import_path in self.import_path_stack:
                 raise ValueError(
                     f"Circular import detected: {import_path} is already in the import stack: {self.import_path_stack}"
@@ -67,80 +95,87 @@ class ConfigBuilder:
             import_dict = self.loader(import_path)
 
             builder = ConfigBuilder(
+                base_path=import_path,
                 import_path_stack=self.import_path_stack + [import_path],
                 raw_toml_dict=import_dict,
                 delete_imports=self.delete_imports,
             )
             resolved = builder.resolve_recursive_imports()
+            inside_resolved = resolve_inside_address(obj=resolved, inside_address=imp.inside_address)
 
             match imp:
-                case Import(path=path):
-                    fn = path.stem
-                    if fn in result_config:
+                case Import( _ ) :              
+                    import_to_name = imp.filepath.stem
+                    if import_to_name in result_config:
                         raise ValueError(
-                            f"Import conflict: {fn} already exists in the configuration."
+                            f"Import conflict: {import_to_name} already exists in the configuration. {imp}"
                         )
-                    result_config[fn] = resolved
+                        
+                    result_config[import_to_name] = inside_resolved
 
-                case ImportAs(path=path, as_name=as_name):
+                case ImportAs( _, as_name=as_name, ):
                     if as_name in result_config:
                         raise ValueError(
-                            f"Import conflict: {as_name} already exists in the configuration."
+                            f"Import conflict: {as_name} already exists in the configuration. {imp}"
                         )
-                    result_config[as_name] = resolved
+                    
+                    result_config[as_name] = inside_resolved
 
-                case FromImportOne(path=path, import_name=import_name):
+                case FromImportOne(_, import_name=import_name):
+
                     if import_name in result_config:
                         raise ValueError(
-                            f"Import conflict: {import_name} already exists in the configuration."
+                            f"Import conflict: {import_name} already exists in the configuration. {result_config} {imp}"
                         )
-                    if import_name not in resolved:
-                        raise ValueError(
-                            f"Import name {import_name} not found in {path}."
-                        )
-                    result_config[import_name] = resolved[import_name]
+                        
+                    result_config[import_name] = inside_resolved
 
-                case FromImportMany(path=path, import_names=import_names):
+                case FromImportMany(_, import_names=import_names):                    
+                    
                     for import_name in import_names:
-                        if import_name not in resolved:
-                            raise ValueError(
-                                f"Import name {import_name} not found in {path}."
-                            )
+                        
                         if import_name in result_config:
                             raise ValueError(
-                                f"Import conflict: {import_name} already exists in the configuration."
+                                f"Import conflict: {import_name} already exists in the configuration. {imp}"
                             )
-                        result_config[import_name] = resolved[import_name]
+                        if import_name not in inside_resolved:
+                            raise ValueError(
+                                f"Import name {import_name} not found in {imp}."
+                            )
+                            
+                        result_config[import_name] = inside_resolved[import_name]
 
-                case FromImportStar(path=path):
-                    for import_name, value in resolved.items():
+                case FromImportStar(_):
+                    for import_name, value in inside_resolved.items():
                         if import_name in result_config:
                             raise ValueError(
-                                f"Import conflict: {import_name} already exists in the configuration."
+                                f"Import conflict: {import_name} already exists in the configuration. {imp}"
                             )
                         result_config[import_name] = value
 
                 case FromImportOneAs(
-                    path=path, import_name=import_name, as_name=as_name
+                    _, import_name=import_name, as_name=as_name
                 ):
-                    if import_name not in resolved:
-                        raise ValueError(
-                            f"Import name {import_name} not found in {path}."
-                        )
                     if as_name in result_config:
                         raise ValueError(
-                            f"Import conflict: {as_name} already exists in the configuration."
+                            f"Import conflict: {as_name} already exists in the configuration. {imp}"
                         )
-                    result_config[as_name] = resolved[import_name]
+                    if import_name not in inside_resolved:
+                        raise ValueError(
+                            f"Import name {import_name} not found in {imp.filepath}. {imp}"
+                        )
+                                           
+                    result_config[as_name] = inside_resolved[import_name]
 
                 case _:
                     raise NotImplementedError(
-                        f"Import type {type(imp)} not implemented yet."
+                        f"Import type {type(imp)} not implemented yet. {imp}"
                     )
 
         # resolve the child environments
         for name, d in self.child_environments().items():
             b = ConfigBuilder(
+                base_path=self.base_path,
                 import_path_stack=self.import_path_stack,
                 raw_toml_dict=d,
                 delete_imports=self.delete_imports,

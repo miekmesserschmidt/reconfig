@@ -1,89 +1,102 @@
 from dataclasses import dataclass
 from pathlib import Path
-from typing import Optional, Protocol
+from typing import Any, Optional, Protocol
+
+
 
 
 class BaseImport(Protocol):
-    path: Path
+    address_string: str
 
-    def resolve_path(self, base_path: Optional[Path] = None) -> Path:
-        if base_path is None:
-            return self.path.resolve()
+    @property
+    def filepath(self) -> Path:
+        if "::" in self.address_string:
+            file_path, *_ = self.address_string.split("::")
+            return Path(file_path)
+        else:
+            return Path(self.address_string)
 
-        if self.path.is_absolute():
-            return self.path.resolve()
-
-        return (base_path.parent / self.path).resolve()
-
+    @property
+    def inside_address(self) -> list[str]:
+        if "::" in self.address_string:
+            _, inside_path = self.address_string.split("::", 1)
+            inside_addr = inside_path.split(".")
+            return inside_addr
+        else:
+            return []
 
 @dataclass
 class Import(BaseImport):
-    path: Path
+    address_string: str
 
 
 @dataclass
 class ImportAs(BaseImport):
-    path: Path
+    address_string: str
     as_name: str
 
 
 @dataclass
 class FromImportOne(BaseImport):
-    path: Path
+    address_string: str
     import_name: str
 
 
 @dataclass
 class FromImportOneAs(BaseImport):
-    path: Path
+    address_string: str
     import_name: str
     as_name: str
 
 
 @dataclass
 class FromImportMany(BaseImport):
-    path: Path
+    address_string: str
     import_names: list[str]
 
 
 @dataclass
 class FromImportStar(BaseImport):
-    path: Path
+    address_string: str
 
 
 def detect_import(import_dict: dict) -> BaseImport:
-    if set(import_dict.keys()) == {"import"}:
-        return Import(path=Path(import_dict["import"]))
+    match import_dict:
+        case {"from": address_str, "import": "*"}:
+            return FromImportStar(address_string=address_str)
 
-    if set(import_dict.keys()) == {"import", "as"}:
-        return ImportAs(path=Path(import_dict["import"]), as_name=import_dict["as"])
+        case {"from": address_str, "import": [*import_names] }:
+            return FromImportMany(
+                address_string=address_str,
+                import_names=import_names,
+            )
 
-    if (
-        set(import_dict.keys()) == {"from", "import"}
-        and isinstance(import_dict["import"], str)
-        and import_dict["import"] == "*"
-    ):
-        return FromImportStar(path=Path(import_dict["from"]))
+        case {"from": address_str, "import": import_name}:
+            return FromImportOne(
+                address_string=address_str,
+                import_name=import_name,
+            )
 
-    if set(import_dict.keys()) == {"from", "import"} and isinstance(
-        import_dict["import"], str
-    ):
-        return FromImportOne(
-            path=Path(import_dict["from"]), import_name=import_dict["import"]
-        )
-
-    if set(import_dict.keys()) == {"from", "import"} and isinstance(
-        import_dict["import"], list
-    ):
-        return FromImportMany(
-            path=Path(import_dict["from"]), import_names=import_dict["import"]
-        )
-
-    if set(import_dict.keys()) == {"from", "import", "as"}:
-        return FromImportOneAs(
-            path=Path(import_dict["from"]),
-            import_name=import_dict["import"],
-            as_name=import_dict["as"],
-        )
-
-    raise ValueError(f"Invalid import definition: {import_dict}")
+        case {"from" : address_str, "import": import_val, "as": as_name}:
+            return FromImportOneAs(
+                address_string=address_str,
+                import_name=import_val,
+                as_name=as_name,
+            )
+        
+        case {"import" : address_str, "as": as_name}:
+            return ImportAs(
+                address_string=address_str,
+                as_name=as_name,
+            )
+            
+        case {"import": address_str}:
+            return Import(address_string=address_str) 
+        
+        
+        
+        
+            
+        case _:
+            raise ValueError(f"Invalid import definition: {import_dict}")
+    
