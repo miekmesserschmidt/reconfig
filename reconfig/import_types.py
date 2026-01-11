@@ -1,89 +1,75 @@
 from dataclasses import dataclass
+from operator import add
 from pathlib import Path
-from typing import Optional, Protocol
+from typing import Any, Protocol
 
 
 class BaseImport(Protocol):
-    path: Path
+    import_string: str
+    
+    @property
+    def path_string(self) -> str:
+        return self.import_string.split("::")[0]
+        
+    @property
+    def inside_address(self) -> list[str]:
+        parts = self.import_string.split("::")
+        if len(parts) <= 1:
+            return []
+        return parts[1].split(".")
+    
 
-    def resolve_path(self, base_path: Optional[Path] = None) -> Path:
-        if base_path is None:
-            return self.path.resolve()
-
-        if self.path.is_absolute():
-            return self.path.resolve()
-
-        return (base_path.parent / self.path).resolve()
 
 
 @dataclass
 class Import(BaseImport):
-    path: Path
+    import_string: str
 
 
 @dataclass
 class ImportAs(BaseImport):
-    path: Path
+    import_string: str
     as_name: str
 
 
 @dataclass
 class FromImportOne(BaseImport):
-    path: Path
+    import_string: str
     import_name: str
 
 
 @dataclass
 class FromImportOneAs(BaseImport):
-    path: Path
+    import_string: str
     import_name: str
     as_name: str
 
 
 @dataclass
 class FromImportMany(BaseImport):
-    path: Path
+    import_string: str
     import_names: list[str]
 
 
 @dataclass
 class FromImportStar(BaseImport):
-    path: Path
+    import_string: str
 
 
 def detect_import(import_dict: dict) -> BaseImport:
-    if set(import_dict.keys()) == {"import"}:
-        return Import(path=Path(import_dict["import"]))
-
-    if set(import_dict.keys()) == {"import", "as"}:
-        return ImportAs(path=Path(import_dict["import"]), as_name=import_dict["as"])
-
-    if (
-        set(import_dict.keys()) == {"from", "import"}
-        and isinstance(import_dict["import"], str)
-        and import_dict["import"] == "*"
-    ):
-        return FromImportStar(path=Path(import_dict["from"]))
-
-    if set(import_dict.keys()) == {"from", "import"} and isinstance(
-        import_dict["import"], str
-    ):
-        return FromImportOne(
-            path=Path(import_dict["from"]), import_name=import_dict["import"]
-        )
-
-    if set(import_dict.keys()) == {"from", "import"} and isinstance(
-        import_dict["import"], list
-    ):
-        return FromImportMany(
-            path=Path(import_dict["from"]), import_names=import_dict["import"]
-        )
-
-    if set(import_dict.keys()) == {"from", "import", "as"}:
-        return FromImportOneAs(
-            path=Path(import_dict["from"]),
-            import_name=import_dict["import"],
-            as_name=import_dict["as"],
-        )
-
-    raise ValueError(f"Invalid import definition: {import_dict}")
+    match import_dict:
+        case {"import" : import_str, "as" : as_name}:
+            return ImportAs(import_string=import_str, as_name=as_name)
+        case {"import" : import_str}:
+            return Import(import_string=import_str)
+        case {"from" : from_str, "import" : "*"}:
+            return FromImportStar(import_string=from_str)
+        case {"from" : from_str, "import" : [*import_names]}:
+            return FromImportMany(import_string=from_str, import_names=import_names)
+        case {"from" : from_str, "import" : import_name, "as" : as_name}:
+            return FromImportOneAs(import_string=from_str, import_name=import_name, as_name=as_name)
+        case {"from" : from_str, "import" : import_name}:
+            return FromImportOne(import_string=from_str, import_name=import_name)
+        case _:
+            raise ValueError(f"Invalid import definition: {import_dict}")
+        

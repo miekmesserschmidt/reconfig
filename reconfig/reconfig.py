@@ -1,6 +1,5 @@
-from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Any, Callable, Iterable, List, cast
+from typing import Any, Callable
 
 from reconfig.import_types import (
     FromImportMany,
@@ -14,6 +13,9 @@ from reconfig.import_types import (
 )
 
 
+type Loader = Callable[[Path], dict]
+
+
 def load_toml_dict(path: Path) -> dict:
     import tomllib
 
@@ -23,129 +25,87 @@ def load_toml_dict(path: Path) -> dict:
     return toml_dict
 
 
-@dataclass
-class ConfigBuilder:
-    import_path_stack: List[Path]
-    raw_toml_dict: dict[str, str]
-    delete_imports: bool = True
+def resolve_path(base_path: Path, path_str_to_resolve: str) -> Path:
+    path_to_resolve = Path(path_str_to_resolve)
+    if path_to_resolve.is_absolute():
+        return path_to_resolve.resolve()
+    else:
+        return (base_path.parent / path_to_resolve).resolve()
 
-    loader: Callable[[Path], dict] = field(default_factory=lambda: load_toml_dict)
 
-    @property
-    def resolved_path(self) -> Path:
-        return self.import_path_stack[-1].resolve()
+def resolve_inner_path(data: dict, inside_address: list[str]) -> Any:
+    if inside_address == []:
+        return data
 
-    def imports(self) -> List[BaseImport]:
-        reconfig = self.raw_toml_dict.get("imports", [])
-        reconfig = cast(Iterable[dict], reconfig)
-        return [detect_import(import_dict) for import_dict in reconfig]
+    first, *rest = inside_address
+    if first not in data:
+        raise KeyError(
+            f"Key '{first}' not found in data during inside address resolution."
+        )
+    return resolve_inner_path(data[first], rest)
 
-    def child_environments(self) -> dict:
-        return {
-            name: d for name, d in self.raw_toml_dict.items() if isinstance(d, dict)
-        }
 
-    @property
-    def reconfig_list(self) -> list[dict[str, dict]]:
-        imps = self.raw_toml_dict.get("imports", [])
-        imps = cast(list[dict[str, dict]], imps)
-        return imps
+def build_extender(imp: BaseImport, file_imported_data: dict) -> dict:
+    resolved_inner = resolve_inner_path(file_imported_data, imp.inside_address)
 
-    def resolve_recursive_imports(self) -> dict[str, Any]:
-        result_config: dict[str, Any] = self.raw_toml_dict.copy()
-        if "imports" in result_config:
-            del result_config["imports"]
+    match imp:
+        case Import():
+            as_name = Path(imp.path_string).stem
+            return {as_name: resolved_inner}
+        case ImportAs(as_name=as_name):
+            return {as_name: resolved_inner}
+        case FromImportOne(import_name=import_name):
+            return {import_name: resolved_inner[import_name]}
+        case FromImportOneAs(import_name=import_name, as_name=as_name):
+            return {as_name: resolved_inner[import_name]}
+        case FromImportMany(import_names=import_names):
+            return {name: resolved_inner[name] for name in import_names}
+        case FromImportStar():
+            return resolved_inner
+    raise ValueError(f"Unsupported import type: {imp}")
 
-        # resolve the imports at the top level
-        for imp in self.imports():
-            import_path = imp.resolve_path(self.resolved_path)
-            if import_path in self.import_path_stack:
-                raise ValueError(
-                    f"Circular import detected: {import_path} is already in the import stack: {self.import_path_stack}"
-                )
 
-            import_dict = self.loader(import_path)
+def resolve(
+    base_path: Path,
+    initial_data: dict,
+    import_path_stack: list[Path],
+    loader: Loader,
+) -> dict:
+    # grab the child environments: dicts that are not imports
+    ch_envs = {name: val for name, val in initial_data.items() if isinstance(val, dict)}
 
-            builder = ConfigBuilder(
-                import_path_stack=self.import_path_stack + [import_path],
-                raw_toml_dict=import_dict,
-                delete_imports=self.delete_imports,
+    # grab the list of imports
+    ch_imports_list = initial_data.get("imports", [])
+
+    output_data = initial_data.copy()
+    
+    # resolve the imports
+    for ch_imp_dict in ch_imports_list:
+        ch_imp = detect_import(ch_imp_dict)
+        ch_abs_fn = resolve_path(base_path, ch_imp.path_string)
+        ch_base_path = ch_abs_fn.parent
+        ch_resolved_data = resolve(
+            base_path=ch_base_path,
+            initial_data=loader(ch_abs_fn),
+            import_path_stack=import_path_stack + [ch_abs_fn],
+            loader=loader,
+        )
+        ch_extender = build_extender(ch_imp, ch_resolved_data)
+
+        if set(ch_extender) & set(output_data):
+            raise ValueError(
+                f"Import conflict: keys {set(ch_extender) & set(output_data)} already exist in the output data."
             )
-            resolved = builder.resolve_recursive_imports()
 
-            match imp:
-                case Import(path=path):
-                    fn = path.stem
-                    if fn in result_config:
-                        raise ValueError(
-                            f"Import conflict: {fn} already exists in the configuration."
-                        )
-                    result_config[fn] = resolved
+        output_data.update(ch_extender)
 
-                case ImportAs(path=path, as_name=as_name):
-                    if as_name in result_config:
-                        raise ValueError(
-                            f"Import conflict: {as_name} already exists in the configuration."
-                        )
-                    result_config[as_name] = resolved
+    # resolve the child environments 
+    for name, ch_data in ch_envs.items():
+        output_data[name] = resolve(
+            base_path=base_path,
+            initial_data=ch_data,
+            import_path_stack=import_path_stack,
+            loader=loader,
+        )
 
-                case FromImportOne(path=path, import_name=import_name):
-                    if import_name in result_config:
-                        raise ValueError(
-                            f"Import conflict: {import_name} already exists in the configuration."
-                        )
-                    if import_name not in resolved:
-                        raise ValueError(
-                            f"Import name {import_name} not found in {path}."
-                        )
-                    result_config[import_name] = resolved[import_name]
-
-                case FromImportMany(path=path, import_names=import_names):
-                    for import_name in import_names:
-                        if import_name not in resolved:
-                            raise ValueError(
-                                f"Import name {import_name} not found in {path}."
-                            )
-                        if import_name in result_config:
-                            raise ValueError(
-                                f"Import conflict: {import_name} already exists in the configuration."
-                            )
-                        result_config[import_name] = resolved[import_name]
-
-                case FromImportStar(path=path):
-                    for import_name, value in resolved.items():
-                        if import_name in result_config:
-                            raise ValueError(
-                                f"Import conflict: {import_name} already exists in the configuration."
-                            )
-                        result_config[import_name] = value
-
-                case FromImportOneAs(
-                    path=path, import_name=import_name, as_name=as_name
-                ):
-                    if import_name not in resolved:
-                        raise ValueError(
-                            f"Import name {import_name} not found in {path}."
-                        )
-                    if as_name in result_config:
-                        raise ValueError(
-                            f"Import conflict: {as_name} already exists in the configuration."
-                        )
-                    result_config[as_name] = resolved[import_name]
-
-                case _:
-                    raise NotImplementedError(
-                        f"Import type {type(imp)} not implemented yet."
-                    )
-
-        # resolve the child environments
-        for name, d in self.child_environments().items():
-            b = ConfigBuilder(
-                import_path_stack=self.import_path_stack,
-                raw_toml_dict=d,
-                delete_imports=self.delete_imports,
-            )
-            resolved_d = b.resolve_recursive_imports()
-            result_config[name] = resolved_d
-
-        return result_config
+    return output_data
