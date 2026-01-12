@@ -9,7 +9,10 @@ def test_integration():
 
     expected = {
         "recursive": {
-            "a": {"var_a": "val_a"},
+            "a": {
+                "var_a": "val_a",
+                "section_a": {"sub_section_a": {"sub_sec_var": "sub_sec_value"}},
+            },
             "b": {"var_b": "val_b", "section_b": {"sec_val_b": "sec_val_b"}},
             "c": {
                 "var_c": "val_c",
@@ -22,7 +25,11 @@ def test_integration():
         },
         "section": {
             "var_a": "val_a",
-            "a_renamed": {"var_a": "val_a"},
+            "sub_sec_var": "sub_sec_value",
+            "a_renamed": {
+                "var_a": "val_a",
+                "section_a": {"sub_section_a": {"sub_sec_var": "sub_sec_value"}},
+            },
             "var_b": "val_b",
             "sec_val_b": "sec_val_b",
             "renamed_sec_val_b": "sec_val_b",

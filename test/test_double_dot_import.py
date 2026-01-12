@@ -1,4 +1,3 @@
-
 def test_double_dot_import():
     """Test that double dot imports work correctly."""
     from pathlib import Path

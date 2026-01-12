@@ -14,20 +14,39 @@ imports = {
     # simple import  (filename becomes the key)
     { import = "{filepath}" },      
     
+    # simple import  (variable/section becomes the key)
+    { import = "{filepath}::{variable/section}" },      
+
     # renaming simple import (provided newname becomes the key)
     { import = "{filepath}", as = "{newname}"},
-    
+
+    # renaming simple import (provided newname becomes the key)
+    { import = "{filepath}::{variable/section}", as = "{newname}"},
+
     # import a list of variables from file       
     { from = "{filepath}", import = ["{name1}", "{name2}"]}, 
     
+    # import a list of variables from a section       
+    { from = "{filepath}::section", import = ["{name1}", "{name2}"]}, 
+
     # import a single of variables from file   
     { from = "{filepath}", import = "{name}"},
     
+    # import a single of variables from section   
+    { from = "{filepath}::{section}", import = "{name}"},
+
     # import a single of variables from file (provided newname becomes the key)
     { from = "{filepath}", import = "{name}", as = "{newname}"},
     
+    # import a single of variables from section (provided newname becomes the key)
+    { from = "{filepath}::{section}", import = "{name}", as = "{newname}"},
+
     # import all top-level elements from file (star import)
     { from = "{filepath}", import = "*" }
+
+    # import all top-level elements from section (star import)
+    { from = "{filepath}::{section}", import = "*" }
+
 }
 
 ```
@@ -48,6 +67,7 @@ imports = [
 [section]
 imports = [
     {import = "a.toml::var_a"},
+    {import = "a.toml::section_a.sub_section_a.sub_sec_var"},
     {import = "a.toml", as = "a_renamed"},
     { from = "b.toml", import = "var_b"},
     { from = "b.toml::section_b", import = "sec_val_b"},
@@ -69,6 +89,10 @@ imports = [
 # ./a.toml
 ####
 var_a = "val_a"
+
+[section_a.sub_section_a]
+sub_sec_var = "sub_sec_value"
+
 
 ####
 # ./c.toml

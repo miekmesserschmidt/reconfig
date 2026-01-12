@@ -1,1 +1,5 @@
 var_a = "val_a"
+
+
+[section_a.sub_section_a]
+sub_sec_var = "sub_sec_value"
