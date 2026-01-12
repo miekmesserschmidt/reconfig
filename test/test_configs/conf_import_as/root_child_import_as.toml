@@ -1,0 +1,7 @@
+
+var_root = "root_value"
+
+[child_section]
+imports = [
+    { import = "./incl.toml", as = "inc"},
+]

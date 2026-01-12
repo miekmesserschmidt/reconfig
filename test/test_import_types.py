@@ -8,7 +8,7 @@ from reconfig.import_types import (
     FromImportOneAs,
     FromImportMany,
     FromImportStar,
-    detect_import_type,
+    detect_import,
 )
 
 
@@ -168,14 +168,14 @@ class TestDetectImport:
     def test_detect_from_import_star(self):
         """Test detection of 'from X import *' pattern."""
         import_dict = {"from": "config.toml", "import": "*"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, FromImportStar)
         assert result.address_string == "config.toml"
 
     def test_detect_from_import_many(self):
         """Test detection of 'from X import [a, b, c]' pattern."""
         import_dict = {"from": "config.toml", "import": ["database", "cache"]}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, FromImportMany)
         assert result.address_string == "config.toml"
         assert result.import_names == ["database", "cache"]
@@ -183,14 +183,14 @@ class TestDetectImport:
     def test_detect_from_import_many_single_item(self):
         """Test FromImportMany with single item list."""
         import_dict = {"from": "config.toml", "import": ["database"]}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, FromImportMany)
         assert result.import_names == ["database"]
 
     def test_detect_from_import_one(self):
         """Test detection of 'from X import Y' pattern."""
         import_dict = {"from": "config.toml", "import": "database"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, FromImportOne)
         assert result.address_string == "config.toml"
         assert result.import_name == "database"
@@ -198,7 +198,7 @@ class TestDetectImport:
     def test_detect_from_import_one_as(self):
         """Test detection of 'from X import Y as Z' pattern."""
         import_dict = {"from": "config.toml", "import": "database", "as": "db"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, FromImportOneAs)
         assert result.address_string == "config.toml"
         assert result.import_name == "database"
@@ -207,7 +207,7 @@ class TestDetectImport:
     def test_detect_import_as(self):
         """Test detection of 'import X as Y' pattern."""
         import_dict = {"import": "config.toml", "as": "cfg"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, ImportAs)
         assert result.address_string == "config.toml"
         assert result.as_name == "cfg"
@@ -215,7 +215,7 @@ class TestDetectImport:
     def test_detect_import(self):
         """Test detection of simple 'import X' pattern."""
         import_dict = {"import": "config.toml"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, Import)
         assert result.address_string == "config.toml"
 
@@ -223,18 +223,18 @@ class TestDetectImport:
         """Test that invalid import dict raises ValueError."""
         import_dict = {"invalid": "structure"}
         with pytest.raises(ValueError, match="Invalid import definition"):
-            detect_import_type(import_dict)
+            detect_import(import_dict)
 
     def test_detect_import_empty(self):
         """Test that empty dict raises ValueError."""
         import_dict = {}
         with pytest.raises(ValueError, match="Invalid import definition"):
-            detect_import_type(import_dict)
+            detect_import(import_dict)
 
     def test_detect_import_with_inside_address(self):
         """Test detection works with :: in address_string."""
         import_dict = {"import": "config.toml::database.host"}
-        result = detect_import_type(import_dict)
+        result = detect_import(import_dict)
         assert isinstance(result, Import)
         assert result.address_string == "config.toml::database.host"
         assert result.filepath == Path("config.toml")

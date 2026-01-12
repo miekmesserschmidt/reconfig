@@ -1,25 +1,23 @@
+
 from pathlib import Path
-from typing import Callable
-from reconfig.reconfig import ConfigBuilder, load_toml_dict
+from reconfig.reconfig import Loader, resolve
 
 
-def resolve_config(
-    import_path: Path, loader: Callable[[Path], dict] = load_toml_dict
-) -> dict:
-    """_summary_
+def load_toml_dict(path: Path) -> dict:
+    import tomllib
 
-    Args:
-        import_path (Path): Path of the initial config file to load.
-        loader (Callable[[Path], dict], optional): The file loader used to load paths into dicts. Defaults to load_toml_dict.
+    with open(path, "rb") as f:
+        toml_dict = tomllib.load(f)
 
-    Returns:
-        dict: the resolved configuration dictionary.
-    """
+    return toml_dict
 
-    raw_data = loader(import_path)
-    builder = ConfigBuilder(
-        import_path_stack=[import_path],
-        raw_toml_dict=raw_data,
+def resolve_config(root_path: Path, loader : Loader = load_toml_dict) -> dict:
+    root_path = root_path.resolve()
+    base_path = root_path.parent
+    initial_data = loader(root_path)
+    return resolve(
+        base_path=base_path,
+        initial_data=initial_data,
+        import_path_stack=[root_path],
         loader=loader,
     )
-    return builder.resolve_recursive_imports()

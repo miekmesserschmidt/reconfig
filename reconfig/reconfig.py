@@ -30,7 +30,7 @@ def resolve_path(base_path: Path, path_str_to_resolve: str) -> Path:
     if path_to_resolve.is_absolute():
         return path_to_resolve.resolve()
     else:
-        return (base_path.parent / path_to_resolve).resolve()
+        return (base_path / path_to_resolve).resolve()
 
 
 def resolve_inner_path(data: dict, inside_address: list[str]) -> Any:
@@ -50,8 +50,12 @@ def build_extender(imp: BaseImport, file_imported_data: dict) -> dict:
 
     match imp:
         case Import():
-            as_name = Path(imp.path_string).stem
+            if not imp.inside_address:                 
+                as_name = Path(imp.path_string).stem
+            else:
+                as_name = imp.inside_address[-1]
             return {as_name: resolved_inner}
+        
         case ImportAs(as_name=as_name):
             return {as_name: resolved_inner}
         case FromImportOne(import_name=import_name):
@@ -70,23 +74,27 @@ def resolve(
     initial_data: dict,
     import_path_stack: list[Path],
     loader: Loader,
+    delete_imports_from_result: bool = True,
 ) -> dict:
     # grab the child environments: dicts that are not imports
-    ch_envs = {name: val for name, val in initial_data.items() if isinstance(val, dict)}
+    child_envs = {name: val for name, val in initial_data.items() if isinstance(val, dict)}
 
-    # grab the list of imports
-    ch_imports_list = initial_data.get("imports", [])
+    # grab the list of child imports
+    child_imports_list = initial_data.get("imports", [])
 
     output_data = initial_data.copy()
-    
-    # resolve the imports
-    for ch_imp_dict in ch_imports_list:
+    if delete_imports_from_result and "imports" in output_data:
+        del output_data["imports"]
+        
+    # resolve the child imports
+    for ch_imp_dict in child_imports_list:
         ch_imp = detect_import(ch_imp_dict)
         ch_abs_fn = resolve_path(base_path, ch_imp.path_string)
         ch_base_path = ch_abs_fn.parent
+        ch_initial_data = loader(ch_abs_fn)
         ch_resolved_data = resolve(
             base_path=ch_base_path,
-            initial_data=loader(ch_abs_fn),
+            initial_data=ch_initial_data,
             import_path_stack=import_path_stack + [ch_abs_fn],
             loader=loader,
         )
@@ -100,7 +108,7 @@ def resolve(
         output_data.update(ch_extender)
 
     # resolve the child environments 
-    for name, ch_data in ch_envs.items():
+    for name, ch_data in child_envs.items():
         output_data[name] = resolve(
             base_path=base_path,
             initial_data=ch_data,
