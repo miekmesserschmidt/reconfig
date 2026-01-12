@@ -1,0 +1,5 @@
+var_c = "val_c"
+[section_c]
+section_var_c0 = "sec_val_c0"
+section_var_c1 = "sec_val_c1"
+section_var_c2 = "sec_val_c2"

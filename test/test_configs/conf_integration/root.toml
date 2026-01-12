@@ -1,0 +1,15 @@
+#top imports
+imports = [
+    {import = "./recursive.toml"},
+]
+
+[section]
+imports = [
+    {import = "a.toml::var_a"},
+    {import = "a.toml", as = "a_renamed"},
+    { from = "b.toml", import = "var_b"},
+    { from = "b.toml::section_b", import = "sec_val_b"},
+    { from = "b.toml::section_b", import = "sec_val_b", as = "renamed_sec_val_b"},
+    { from = "c.toml", import = "*"},
+    { from = "c.toml::section_c", import = ["section_var_c0", "section_var_c2"]},    
+ ]

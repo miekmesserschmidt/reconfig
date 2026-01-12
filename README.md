@@ -42,67 +42,50 @@ Example:
 ####
 #top imports
 imports = [
-    {import = "./includes_A/include_a.toml"},
+    {import = "./recursive.toml"},
 ]
 
 [section]
 imports = [
-    {from = "./includes_A/include_b.toml", import = "var_b"},
-    {from = "./includes_A/include_c.toml", import = "var_c", as="new_var_c"},
-    {from = "./includes_B/include_d.toml", import = ["var_d", "section_d"]},
-    {from = "./includes_B/include_e.toml", import = "*"}
-]
+    {import = "a.toml::var_a"},
+    {import = "a.toml", as = "a_renamed"},
+    { from = "b.toml", import = "var_b"},
+    { from = "b.toml::section_b", import = "sec_val_b"},
+    { from = "b.toml::section_b", import = "sec_val_b", as = "renamed_sec_val_b"},
+    { from = "c.toml", import = "*"},
+    { from = "c.toml::section_c", import = ["section_var_c0", "section_var_c2"]},    
+ ]
 
 ####
-# ./includes_A/include_a.toml
+# ./recursive.toml
 ####
 imports = [ 
-    {import = "../includes_B/include_d.toml"},
-    {import = "/etc/reconf/etc_conf.toml"}
+    {import = "a.toml"},
+    {import = "b.toml"},
+    {import = "c.toml"}
 ]
 
-var_a = "value_a"
+####
+# ./a.toml
+####
+var_a = "val_a"
 
 ####
-# ./includes_A/include_b.toml
+# ./c.toml
 ####
-var_b = "value_b"
-
-[section_in_b]
-var_in_section_b = "value_in_section_b"
-
-####
-# ./includes_A/include_c.toml
-####
-var_c = "value_c"
-var_d = "value_d"
+var_b = "val_b"
+[section_b]
+section_var_b = "sec_val_b"
 
 ####
-# ./includes_B/include_d.toml
+# ./c.toml
 ####
-var_d = "value_d_yes"
+var_c = "val_c"
+[section_c]
+section_var_c0 = "sec_val_c0"
+section_var_c1 = "sec_val_c1"
+section_var_c2 = "sec_val_c2"
 
-[section_d]
-section_d_var_d = "section_d_value_d" 
-
-[section_e]
-var_section_e = "not present"
-
-####
-# ./includes_B/include_e.toml
-####
-[db]
-host = "localhost"
-port = 5432
-
-[cache]
-host = "redis.local"
-ttl = 3600
-
-####
-# /etc/reconf/etc_conf.toml
-####
-etc_var = "etc"
 ```
 
 ```python
@@ -113,37 +96,28 @@ from pathlib import Path
 result = resolve_config(Path("./root.toml"))
 
 assert result == {
-    "include_a": {
-        "include_d": {
-            "var_d": "value_d_yes",
-            "section_d": {
-                "section_d_var_d": "section_d_value_d"
+    "recursive": {
+        "a": {"var_a": "val_a"},
+        "b": {"var_b": "val_b", "section_b": {"section_var_b": "sec_val_b"}},
+        "c": {
+            "var_c": "val_c",
+            "section_c": {
+                "section_var_c0": "sec_val_c0",
+                "section_var_c1": "sec_val_c1",
+                "section_var_c2": "sec_val_c2",
             },
-            "section_e": {
-                "var_section_e": "not present"
-            }
         },
-        "etc_conf": {
-            "etc_var": "etc"
-        },
-        "var_a": "value_a"
     },
     "section": {
-        "var_b": "value_b",
-        "new_var_c": "value_c",
-        "var_d": "value_d_yes",
-        "section_d": {
-            "section_d_var_d": "section_d_value_d"
-        },
-        "db": {
-            "host": "localhost",
-            "port": 5432
-        },
-        "cache": {
-            "host": "redis.local",
-            "ttl": 3600
-        }
-    }
+        "var_a": "val_a",
+        "a_renamed": {"var_a": "val_a"},
+        "var_b": "val_b",
+        "sec_val_b": "sec_val_b",
+        "renamed_sec_val_b": "sec_val_b",
+        "var_c": "val_c",
+        "section_var_c0": "sec_val_c0",
+        "section_var_c2": "sec_val_c2",
+    },
 }
 
 ```
