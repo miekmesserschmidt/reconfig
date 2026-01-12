@@ -1,14 +1,5 @@
 from pathlib import Path
-from reconfig.reconfig import Loader, resolve
-
-
-def load_toml_dict(path: Path) -> dict:
-    import tomllib
-
-    with open(path, "rb") as f:
-        toml_dict = tomllib.load(f)
-
-    return toml_dict
+from reconfig.reconfig import Loader, resolve, load_toml_dict
 
 
 def resolve_config(root_path: Path, loader: Loader = load_toml_dict) -> dict:

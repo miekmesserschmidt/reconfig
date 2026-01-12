@@ -1,0 +1,3 @@
+imports = [
+    { from = "folder_a/a.toml", import = "var"}
+]
