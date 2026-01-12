@@ -95,7 +95,7 @@ sub_sec_var = "sub_sec_value"
 
 
 ####
-# ./c.toml
+# ./b.toml
 ####
 var_b = "val_b"
 [section_b]
