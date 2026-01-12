@@ -1,4 +1,3 @@
-
 from pathlib import Path
 from reconfig.reconfig import Loader, resolve
 
@@ -11,7 +10,8 @@ def load_toml_dict(path: Path) -> dict:
 
     return toml_dict
 
-def resolve_config(root_path: Path, loader : Loader = load_toml_dict) -> dict:
+
+def resolve_config(root_path: Path, loader: Loader = load_toml_dict) -> dict:
     root_path = root_path.resolve()
     base_path = root_path.parent
     initial_data = loader(root_path)

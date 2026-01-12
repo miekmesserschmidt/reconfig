@@ -50,12 +50,12 @@ def build_extender(imp: BaseImport, file_imported_data: dict) -> dict:
 
     match imp:
         case Import():
-            if not imp.inside_address:                 
+            if not imp.inside_address:
                 as_name = Path(imp.path_string).stem
             else:
                 as_name = imp.inside_address[-1]
             return {as_name: resolved_inner}
-        
+
         case ImportAs(as_name=as_name):
             return {as_name: resolved_inner}
         case FromImportOne(import_name=import_name):
@@ -77,7 +77,9 @@ def resolve(
     delete_imports_from_result: bool = True,
 ) -> dict:
     # grab the child environments: dicts that are not imports
-    child_envs = {name: val for name, val in initial_data.items() if isinstance(val, dict)}
+    child_envs = {
+        name: val for name, val in initial_data.items() if isinstance(val, dict)
+    }
 
     # grab the list of child imports
     child_imports_list = initial_data.get("imports", [])
@@ -85,7 +87,7 @@ def resolve(
     output_data = initial_data.copy()
     if delete_imports_from_result and "imports" in output_data:
         del output_data["imports"]
-        
+
     # resolve the child imports
     for ch_imp_dict in child_imports_list:
         ch_imp = detect_import(ch_imp_dict)
@@ -94,7 +96,7 @@ def resolve(
             raise ValueError(
                 f"Circular import detected: {' -> '.join(str(p) for p in import_path_stack + [ch_abs_fn])}"
             )
-        
+
         ch_base_path = ch_abs_fn.parent
         ch_initial_data = loader(ch_abs_fn)
         ch_resolved_data = resolve(
@@ -112,7 +114,7 @@ def resolve(
 
         output_data.update(ch_extender)
 
-    # resolve the child environments 
+    # resolve the child environments
     for name, ch_data in child_envs.items():
         output_data[name] = resolve(
             base_path=base_path,

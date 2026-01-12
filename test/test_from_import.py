@@ -2,10 +2,10 @@ from pathlib import Path
 from reconfig import resolve_config
 
 
-
-
 def test_child_from_import_variable():
-    root = Path("./test/test_configs/conf_from_import_one/root_child_from_import_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_child_from_import_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -19,7 +19,9 @@ def test_child_from_import_variable():
 
 
 def test_root_from_import_section():
-    root = Path("./test/test_configs/conf_from_import_one/root_root_from_import_as_section.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_root_from_import_as_section.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -28,9 +30,12 @@ def test_root_from_import_section():
     }
 
     assert result == expected
-    
+
+
 def test_child_from_import_section():
-    root = Path("./test/test_configs/conf_from_import_one/root_child_from_import_section.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_child_from_import_section.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -41,9 +46,12 @@ def test_child_from_import_section():
     }
 
     assert result == expected
-    
+
+
 def test_root_from_import_section_variable():
-    root = Path("./test/test_configs/conf_from_import_one/root_root_from_import_section_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_root_from_import_section_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -52,10 +60,12 @@ def test_root_from_import_section_variable():
     }
 
     assert result == expected
-    
+
 
 def test_child_from_import_section_variable():
-    root = Path("./test/test_configs/conf_from_import_one/root_child_from_import_section_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_child_from_import_section_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -69,7 +79,9 @@ def test_child_from_import_section_variable():
 
 
 def test_root_from_import_as_variable():
-    root = Path("./test/test_configs/conf_from_import_one/root_root_from_import_as_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_one/root_root_from_import_as_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {

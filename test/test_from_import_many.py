@@ -3,7 +3,9 @@ from reconfig import resolve_config
 
 
 def test_root_from_import_section_variables():
-    root = Path("./test/test_configs/conf_from_import_many/root_root_from_import_section_variables.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_root_from_import_section_variables.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -19,7 +21,9 @@ def test_root_from_import_section_variables():
 
 
 def test_child_from_import_section_variables():
-    root = Path("./test/test_configs/conf_from_import_many/root_child_from_import_section_variables.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_child_from_import_section_variables.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -34,7 +38,9 @@ def test_child_from_import_section_variables():
 
 
 def test_root_from_import_section_sections():
-    root = Path("./test/test_configs/conf_from_import_many/root_root_from_import_section_sections.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_root_from_import_section_sections.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -58,7 +64,9 @@ def test_root_from_import_section_sections():
 
 
 def test_child_from_import_section_sections():
-    root = Path("./test/test_configs/conf_from_import_many/root_child_from_import_section_sections.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_child_from_import_section_sections.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -81,7 +89,9 @@ def test_child_from_import_section_sections():
 
 
 def test_root_from_import_hybrid():
-    root = Path("./test/test_configs/conf_from_import_many/root_root_from_import_hybrid.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_root_from_import_hybrid.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -101,7 +111,9 @@ def test_root_from_import_hybrid():
 
 
 def test_child_from_import_hybrid():
-    root = Path("./test/test_configs/conf_from_import_many/root_child_from_import_hybrid.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_many/root_child_from_import_hybrid.toml"
+    )
     result = resolve_config(root)
 
     expected = {

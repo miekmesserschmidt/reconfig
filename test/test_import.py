@@ -70,7 +70,8 @@ def test_root_import_section():
     }
 
     assert result == expected
-    
+
+
 def test_child_import_section():
     root = Path("./test/test_configs/conf_import/root_child_import_section.toml")
     result = resolve_config(root)
@@ -83,9 +84,12 @@ def test_child_import_section():
     }
 
     assert result == expected
-    
+
+
 def test_root_import_section_variable():
-    root = Path("./test/test_configs/conf_import/root_root_import_section_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_import/root_root_import_section_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -94,10 +98,12 @@ def test_root_import_section_variable():
     }
 
     assert result == expected
-    
+
 
 def test_child_import_section_variable():
-    root = Path("./test/test_configs/conf_import/root_child_import_section_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_import/root_child_import_section_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {

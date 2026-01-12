@@ -3,7 +3,9 @@ from reconfig import resolve_config
 
 
 def test_root_from_import_star_file():
-    root = Path("./test/test_configs/conf_from_import_star/root_root_from_import_file.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_star/root_root_from_import_file.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -16,7 +18,9 @@ def test_root_from_import_star_file():
 
 
 def test_child_from_import_star_file():
-    root = Path("./test/test_configs/conf_from_import_star/root_child_from_import_file.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_star/root_child_from_import_file.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -31,7 +35,9 @@ def test_child_from_import_star_file():
 
 
 def test_root_from_import_star_section():
-    root = Path("./test/test_configs/conf_from_import_star/root_root_from_import_section.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_star/root_root_from_import_section.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -43,7 +49,9 @@ def test_root_from_import_star_section():
 
 
 def test_child_from_import_star_section():
-    root = Path("./test/test_configs/conf_from_import_star/root_child_from_import_section.toml")
+    root = Path(
+        "./test/test_configs/conf_from_import_star/root_child_from_import_section.toml"
+    )
     result = resolve_config(root)
 
     expected = {

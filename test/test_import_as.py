@@ -70,7 +70,8 @@ def test_root_import_as_section():
     }
 
     assert result == expected
-    
+
+
 def test_child_import_as_section():
     root = Path("./test/test_configs/conf_import_as/root_child_import_as_section.toml")
     result = resolve_config(root)
@@ -83,9 +84,12 @@ def test_child_import_as_section():
     }
 
     assert result == expected
-    
+
+
 def test_root_import_as_section_variable():
-    root = Path("./test/test_configs/conf_import_as/root_root_import_as_section_as_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_import_as/root_root_import_as_section_as_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -94,10 +98,12 @@ def test_root_import_as_section_variable():
     }
 
     assert result == expected
-    
+
 
 def test_child_import_as_section_variable():
-    root = Path("./test/test_configs/conf_import_as/root_child_import_as_section_variable.toml")
+    root = Path(
+        "./test/test_configs/conf_import_as/root_child_import_as_section_variable.toml"
+    )
     result = resolve_config(root)
 
     expected = {
@@ -109,13 +115,14 @@ def test_child_import_as_section_variable():
 
     assert result == expected
 
+
 def test_miss_override_import_as():
     root = Path("test/test_configs/conf_override_import_as/root_a.toml")
-    
+
     result = resolve_config(root)
     expected = {
         "a": "a_value",
         "b": "override_a",
     }
-    
+
     assert result == expected
