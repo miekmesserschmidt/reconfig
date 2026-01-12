@@ -1,0 +1,7 @@
+
+
+
+import_var = "imp_val"
+
+[import_section]
+section_var = "import_section_var_value"
