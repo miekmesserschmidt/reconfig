@@ -1,0 +1,8 @@
+
+var_root = "root_value"
+imports = [
+    { from = "./incl.toml",  import = ["import_section0", "import_section1" ] },
+]
+
+[child_section]
+ch_var = "child_value"
