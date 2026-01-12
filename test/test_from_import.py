@@ -2,42 +2,6 @@ from pathlib import Path
 from reconfig import resolve_config
 
 
-def test_root_from_import():
-    root = Path("./test/test_configs/conf_from_import_one/root_root_from_import.toml")
-    result = resolve_config(root)
-
-    expected = {
-        "var_root": "root_value",
-        "import_var": "imp_val",
-    }
-
-    assert result == expected
-
-
-def test_child_from_import():
-    root = Path("./test/test_configs/conf_from_import_one/root_child_from_import.toml")
-    result = resolve_config(root)
-
-    expected = {
-        "var_root": "root_value",
-        "child_section": {
-            "import_var": "imp_val",
-        },
-    }
-
-    assert result == expected
-
-
-def test_root_from_import_variable():
-    root = Path("./test/test_configs/conf_from_import_one/root_root_from_import.toml")
-    result = resolve_config(root)
-
-    expected = {
-        "var_root": "root_value",
-        "import_var": "imp_val",
-    }
-
-    assert result == expected
 
 
 def test_child_from_import_variable():

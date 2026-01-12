@@ -1,5 +1,0 @@
-imports = [
-    { from = "./incl.toml", import="import_var", as="imp_var" },
-]
-
-var_root = "root_value"

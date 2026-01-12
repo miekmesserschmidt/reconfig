@@ -1,7 +1,0 @@
-
-var_root = "root_value"
-
-[child_section]
-imports = [
-    { from = "./incl.toml", import = "import_var", as="imp_var" },
-]

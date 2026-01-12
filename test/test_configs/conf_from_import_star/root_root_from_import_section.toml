@@ -1,0 +1,5 @@
+imports = [
+    { from = "./incl.toml::import_section", import="*"},
+]
+
+var_root = "root_value"
