@@ -1,0 +1,7 @@
+
+
+imports = [
+    { import = "./a.toml"}
+]
+
+a = "a_value"

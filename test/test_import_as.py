@@ -108,3 +108,14 @@ def test_child_import_as_section_variable():
     }
 
     assert result == expected
+
+def test_miss_override_import_as():
+    root = Path("test/test_configs/conf_override_import_as/root_a.toml")
+    
+    result = resolve_config(root)
+    expected = {
+        "a": "a_value",
+        "b": "override_a",
+    }
+    
+    assert result == expected
