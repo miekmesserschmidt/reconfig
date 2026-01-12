@@ -1,6 +1,0 @@
-
-imports = [
-    { from = "includes/sections.toml", import = "section_c", as = "renamed" },
-]
-
-value = "root"

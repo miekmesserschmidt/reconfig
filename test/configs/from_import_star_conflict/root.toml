@@ -1,7 +1,0 @@
-
-
-imports = [
-    { from = "includes/sections.toml", import = "*" }
-]
-
-value_a = "from_import_file"

@@ -1,6 +1,0 @@
-
-imports = [
-    { import = "file_a.toml" },
-]
-
-val_b = "value_b"

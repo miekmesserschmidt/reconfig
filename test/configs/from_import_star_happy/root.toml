@@ -1,6 +1,0 @@
-imports = [
-    { from = "includes/sections.toml", import = "*" }
-]
-
-[local_section]
-local_value = "local_data"

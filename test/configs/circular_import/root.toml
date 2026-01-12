@@ -1,7 +1,0 @@
-
-imports = [
-    { import = "includes/file_a.toml" },
-]
-
-[section]
-    value = "root"

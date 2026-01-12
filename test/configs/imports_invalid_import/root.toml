@@ -1,6 +1,0 @@
-
-imports = [
-    { invalid_key = "value" },
-]
-
-value = "root"

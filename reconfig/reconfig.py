@@ -90,6 +90,11 @@ def resolve(
     for ch_imp_dict in child_imports_list:
         ch_imp = detect_import(ch_imp_dict)
         ch_abs_fn = resolve_path(base_path, ch_imp.path_string)
+        if ch_abs_fn in import_path_stack:
+            raise ValueError(
+                f"Circular import detected: {' -> '.join(str(p) for p in import_path_stack + [ch_abs_fn])}"
+            )
+        
         ch_base_path = ch_abs_fn.parent
         ch_initial_data = loader(ch_abs_fn)
         ch_resolved_data = resolve(

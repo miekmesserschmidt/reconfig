@@ -1,6 +1,0 @@
-imports = [
-    { from = "includes/empty.toml", import = "*" }
-]
-
-[local]
-value = "local_value"
